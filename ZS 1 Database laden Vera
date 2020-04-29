@@ -1,9 +1,6 @@
 #voorbeeld_clusterdata.txt
 #voorbeeld_clusterresults.txt
 
-#voorbeeld_clusterdata.txt
-#voorbeeld_clusterresults.txt
-
 import numpy as np
 import pandas as pd
 
@@ -23,8 +20,41 @@ plt.rcParams['lines.markeredgewidth'] = 1  # to fix issue with seaborn box plots
 #from treeviz import tree_print  # to print decision tree
 
 
+def dataladen(tekstbestand):
+    
+    f = open(tekstbestand, "r")
 
-f = open("Data\Data\Voorbeeld_clusterdata.txt", "r")
-voorbeeld_clusterdata = pd.read_table(f.read(),delim_whitespace=True)
-#voorbeeld_clusterdata = f.read()
-print(voorbeeld_clusterdata)
+    #voorbeeld_clusterdata = pd.read_table(f)
+    clusterdata = f.read()
+    print(clusterdata)
+    
+def resultladen(tekstbestand):
+    
+    f = open(tekstbestand, "r")
+
+    clusterresultlines = f.read().splitlines()
+    f.close()
+    
+    #extract keys
+    locsID=list(range(0,len(clusterresultlines),3))  #list of keys positions
+    IDsresult=[]
+    for locID in locsID:
+        #add ID's to list
+        ID=clusterresultlines[locID]
+        IDsresult.append(ID)
+    
+    locsDescription=list(range(1,len(clusterresultlines),3))    #list of values positions
+    descriptionresult=[]
+    for locDescription in locsDescription:
+        #add descriptions to list
+        description=clusterresultlines[locDescription]
+        descriptionresult.append(description)
+    
+    tuplePair = zip(IDsresult, descriptionresult) #voeg de lijsten bij elkaar toe als tuples
+    dictGenDes = dict(tuplePair)  #maak dictionary van de ID's en hun beschrijving
+    
+    return dictGenDes
+    print(dictGenDes)
+    
+dataladen("Voorbeeld_clusterdata.txt")
+resultladen("Voorbeeld_clusterresult.txt")
