@@ -1,1 +1,30 @@
+#voorbeeld_clusterdata.txt
+#voorbeeld_clusterresults.txt
 
+#voorbeeld_clusterdata.txt
+#voorbeeld_clusterresults.txt
+
+import numpy as np
+import pandas as pd
+
+# next command ensures that plots appear inside the notebook
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import seaborn as sns  # also improves the look of plots
+sns.set()
+plt.rcParams['figure.figsize'] = 10, 5  # default hor./vert. size of plots, in inches
+plt.rcParams['lines.markeredgewidth'] = 1  # to fix issue with seaborn box plots; needed after import seaborn
+
+#from sklearn.linear_model import LinearRegression  # for linear regression
+#from sklearn.cluster import KMeans  # for clustering
+#from sklearn.tree import DecisionTreeClassifier  # for decision tree mining
+#from sklearn.metrics import accuracy_score, confusion_matrix, mean_squared_error
+#from sklearn.model_selection import train_test_split
+#from treeviz import tree_print  # to print decision tree
+
+
+
+f = open("Data\Data\Voorbeeld_clusterdata.txt", "r")
+voorbeeld_clusterdata = pd.read_table(f.read(),delim_whitespace=True)
+#voorbeeld_clusterdata = f.read()
+print(voorbeeld_clusterdata)
