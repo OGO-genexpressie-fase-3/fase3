@@ -4,57 +4,52 @@
 import numpy as np
 import pandas as pd
 
-# next command ensures that plots appear inside the notebook
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns  # also improves the look of plots
 sns.set()
 plt.rcParams['figure.figsize'] = 10, 5  # default hor./vert. size of plots, in inches
 plt.rcParams['lines.markeredgewidth'] = 1  # to fix issue with seaborn box plots; needed after import seaborn
 
-#from sklearn.linear_model import LinearRegression  # for linear regression
-#from sklearn.cluster import KMeans  # for clustering
-#from sklearn.tree import DecisionTreeClassifier  # for decision tree mining
-#from sklearn.metrics import accuracy_score, confusion_matrix, mean_squared_error
-#from sklearn.model_selection import train_test_split
-#from treeviz import tree_print  # to print decision tree
-
-
 def dataladen(tekstbestand):
+    #input: data clusteren .txt
+    #output: dataframe met index CloneID
     
+    #open het tekstbestand, lees het regel voor regel in en sluit het
     f = open(tekstbestand, "r")
+    clusterdatalines = f.read().splitlines()
+    f.close()
 
-    #voorbeeld_clusterdata = pd.read_table(f)
-    clusterdata = f.read()
-    print(clusterdata)
+    #maak een lege lijst aan
+    clusterdatalist = []
+    #iedere regel wordt gesplitst op 2 spaties, waardoor elke regel een lijst van values wordt
+    for i in clusterdatalines:
+        linesplit = i.split("  ")
+        #de lijst van de regel wordt toegevoegd aan de lege lijst
+        clusterdatalist.append(linesplit)
+        
+    #clusterdatalist is een lijst met lijsten, hiervan wordt een dataframe gemaakt met CloneID als index
+    df_clusterdata = pd.DataFrame.from_records(clusterdatalist, columns = ['CloneID','1','2','3','4','5','6','7','8']).set_index('CloneID')
+        
+    return df_clusterdata
     
 def resultladen(tekstbestand):
+    #input: resultaten clusteren .txt
+    #output: dictionary met CloneID en clusternummer
     
+    #open het tekstbestand, lees het regel voor regel in en sluit het
     f = open(tekstbestand, "r")
-
     clusterresultlines = f.read().splitlines()
     f.close()
     
-    #extract keys
-    locsID=list(range(0,len(clusterresultlines),3))  #list of keys positions
-    IDsresult=[]
-    for locID in locsID:
-        #add ID's to list
-        ID=clusterresultlines[locID]
-        IDsresult.append(ID)
+    #maak een lege dictionary aan
+    clusterresultdict = {}
+    #iedere regel wordt gesplitst op 3 spaties, zodat ze als key:value aan de dictionary toegevoegd kunnen worden
+    for i in clusterresultlines:
+        linesplit= i.split("   ")
+        clusterresultdict[linesplit[0]]=linesplit[1]
     
-    locsDescription=list(range(1,len(clusterresultlines),3))    #list of values positions
-    descriptionresult=[]
-    for locDescription in locsDescription:
-        #add descriptions to list
-        description=clusterresultlines[locDescription]
-        descriptionresult.append(description)
+    return clusterresultdict
     
-    tuplePair = zip(IDsresult, descriptionresult) #voeg de lijsten bij elkaar toe als tuples
-    dictGenDes = dict(tuplePair)  #maak dictionary van de ID's en hun beschrijving
-    
-    return dictGenDes
-    print(dictGenDes)
     
 dataladen("Voorbeeld_clusterdata.txt")
 resultladen("Voorbeeld_clusterresult.txt")
