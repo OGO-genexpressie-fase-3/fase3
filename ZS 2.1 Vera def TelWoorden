@@ -1,0 +1,35 @@
+def Telwoorden(dict):
+    #input: dictionary met CodeID's en descriptions
+    #output: dictionary met woord en hoe vaak het in de beschrijvingen voorkomt
+    
+    #maak een lijst met de descriptions
+    lijst = list(dict.values())
+    #maak een lege dictionary, dit wordt de output
+    woordendict = {}
+    #voor elke beschrijving wordt een lijst van woorden gemaakt
+    
+    for beschrijving in lijst:
+        beschrijving = beschrijving.split(" ")
+        
+        #overbodige entries en tekens worden verwijderd
+        if "" in beschrijving:
+            beschrijving.remove("")
+        for woord in beschrijving:
+            beschrijving[beschrijving.index(woord)] = woord.strip("\(")
+        for woord in beschrijving:
+            beschrijving[beschrijving.index(woord)] = woord.strip(",")
+        for woord in beschrijving:
+            beschrijving[beschrijving.index(woord)] = woord.strip("\)")
+                
+        #voor elk woord wordt 1 opgeteld bij het aantal keer dat het is voorgekomen in de woordendict   
+        for woord in beschrijving:
+            if woord in woordendict.keys():
+                woordendict[woord] +=1
+            else: #als het woord nog niet in woordendict staat, wordt het toegevoegd met value 1
+                woordendict[woord] = 1
+                
+    return woordendict
+    
+
+dictGenDes, dictGenDes2 = loadData('GenDescription2.txt','GenDescription.txt')
+print(Telwoorden(dictGenDes2))
