@@ -1,0 +1,191 @@
+"""
+Inladen van data: gendescriptions als dictionary met keys de ID's en de
+bij horende beschrijving als values
+"""
+def loadData(locGen2, locGen):
+    """
+    Python code en txt files moeten in deze map gelocaliseerd zijn.
+    Laad data in dat nodig is voor fase 3 de beschrijving van de genen.
+    """
+    #lees txt bestanden
+    infileGen2 = open(locGen2)
+    lines2 = infileGen2.read().splitlines()
+    infileGen2.close()
+    
+    infileGen = open(locGen)
+    lines = infileGen.read().splitlines()
+    infileGen.close()
+    
+    #extract keys
+    locsID2=list(range(0,len(lines2),3))  #list of keys positions
+    IDsGen2=[]
+    for locID2 in locsID2:
+        #add ID's to list
+        ID2=lines2[locID2]
+        IDsGen2.append(ID2)
+    
+    locsID=list(range(0,len(lines),3))  #list of keys positions
+    IDsGen=[]
+    for locID in locsID:
+        #add ID's to list
+        ID=lines[locID]
+        IDsGen.append(ID)
+    
+    #extract values
+    locsDescription2=list(range(1,len(lines2),3))    #list of values positions
+    descriptionGen2=[]
+    for locDescription2 in locsDescription2:
+        #add descriptions to list
+        description2=lines2[locDescription2]
+        descriptionGen2.append(description2)
+    
+    locsDescription=list(range(1,len(lines),3))    #list of values positions
+    descriptionGen=[]
+    for locDescription in locsDescription:
+        #add descriptions to list
+        description=lines[locDescription]
+        descriptionGen.append(description)
+    
+    #make dictionary
+    tuplePair2 = zip(IDsGen2, descriptionGen2) #voeg de lijsten bij elkaar toe als tuples
+    dictGenDes2 = dict(tuplePair2)  #maak dictionary van de ID's en hun beschrijving
+    
+    tuplePair = zip(IDsGen, descriptionGen) #voeg de lijsten bij elkaar toe als tuples
+    dictGenDes = dict(tuplePair)  #maak dictionary van de ID's en hun beschrijving
+    
+    return dictGenDes2, dictGenDes
+
+def resultladen(tekstbestand):
+    #input: resultaten clusteren .txt
+    #output: dictionary met CloneID en clusternummer
+    
+    #open het tekstbestand, lees het regel voor regel in en sluit het
+    f = open(tekstbestand, "r")
+    clusterresultlines = f.read().splitlines()
+    f.close()
+    
+    #maak een lege dictionary aan
+    clusterresultdict = {}
+    #iedere regel wordt gesplitst op 3 spaties, zodat ze als key:value aan de dictionary toegevoegd kunnen worden
+    for i in clusterresultlines:
+        linesplit= i.split("   ")
+        clusterresultdict[linesplit[0]]=linesplit[1]
+    
+    return clusterresultdict
+
+    
+def Telwoorden(dict):
+    #input: dictionary met CodeID's en descriptions
+    #output: dictionary met woord en hoe vaak het in de beschrijvingen voorkomt
+    
+    #maak een lijst met de descriptions
+    lijst = list(dict.values())
+    #maak een lege dictionary, dit wordt de output
+    woordendict = {}
+    #voor elke beschrijving wordt een lijst van woorden gemaakt
+    
+    for beschrijving in lijst:
+        beschrijving = beschrijving.split(" ")
+        
+        #overbodige entries en tekens worden verwijderd
+        if "" in beschrijving:
+            beschrijving.remove("")
+        for woord in beschrijving:
+            beschrijving[beschrijving.index(woord)] = woord.strip("\(")
+        for woord in beschrijving:
+            beschrijving[beschrijving.index(woord)] = woord.strip(",")
+        for woord in beschrijving:
+            beschrijving[beschrijving.index(woord)] = woord.strip("\)")
+                
+        #voor elk woord wordt 1 opgeteld bij het aantal keer dat het is voorgekomen in de woordendict   
+        for woord in beschrijving:
+            if woord in woordendict.keys():
+                woordendict[woord] +=1
+            else: #als het woord nog niet in woordendict staat, wordt het toegevoegd met value 1
+                woordendict[woord] = 1
+                
+    return woordendict
+
+"""
+def WoordenClusters(desdict):
+        #maak een lijst met de descriptions
+    #IDlijst = list(desdict.keys())
+    #beslijst = list(desdict.values())
+    #maak een lege dictionary, dit wordt de output
+    #woordendict = {}
+    #voor elke beschrijving wordt een lijst van woorden gemaakt
+    
+    for beschrijving in desdict.values():
+        beschrijving = beschrijving.split(" ")
+        print(beschrijving)
+        #overbodige entries en tekens worden verwijderd
+        if "" in beschrijving:
+            beschrijving.remove("")
+        
+        for woord in beschrijving:
+            beschrijving[beschrijving.index(woord)] = woord.strip("\(")
+        for woord in beschrijving:
+            beschrijving[beschrijving.index(woord)] = woord.strip(",")
+        for woord in beschrijving:
+            beschrijving[beschrijving.index(woord)] = woord.strip("\)")
+        values = desdict.values()
+        print(values)
+        #desdict[values.index(beschrijving)]=beschrijving
+        
+        
+    print(desdict)
+
+        woordID={}
+        for woord in beschrijving:
+            if woord in woordID.keys():
+                woordID[woord]= []
+                woordID[woord].append(IDlijst[beslijst.index(beschrijving.index(woord))])
+            else:
+                woordID[woord].append(IDlijst[beslijst.index(beschrijving.index(woord))])
+            
+        print(woordID)
+"""
+        
+            
+def WoordenClusters(desdict,clusdict):
+    deskeys = list(desdict.keys())
+    desvalues = list(desdict.values())
+    
+    descriptions = []
+    
+    for beschrijving in desvalues:
+        beschrijving = beschrijving.split(" ")
+        
+        if "" in beschrijving:
+            beschrijving.remove("")
+            
+        for woord in desvalues:
+            desvalues[desvalues.index(woord)] = woord.strip("\(")
+        for woord in desvalues:
+            desvalues[desvalues.index(woord)] = woord.strip(",")
+        for woord in desvalues:
+            desvalues[desvalues.index(woord)] = woord.strip("\)")
+        descriptions.append(beschrijving)
+    print(descriptions)
+        
+
+            
+    """
+        
+    woord_cluster = {}
+    for woord in desvalues:
+        if woord in woord_cluster.keys():
+            woord_cluster[woord].append(deskeys[desvalues.index(woord)])
+        else:
+            woord_cluster[woord]=[deskeys[desvalues.index(woord)]]
+    """
+    
+    
+            
+
+
+
+clusterresult = resultladen("Voorbeeld_clusterresult.txt")
+dictGenDes, dictGenDes2 = loadData('GenDescription2.txt','GenDescription.txt')
+#print(Telwoorden(dictGenDes2))
+WoordenClusters(dictGenDes2, clusterresult)
