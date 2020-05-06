@@ -1,0 +1,53 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+
+def resultladen(file_clusterResult, file_clusterData):
+    #input: resultaten clusteren .txt
+    #output: dictionary met CloneID en clusternummer
+    
+    #open het tekstbestand, lees het regel voor regel in en sluit het
+    f = open(file_clusterResult, "r")
+    clusterresultlines = f.read().splitlines()
+    f.close()
+    
+    #maak een lege dictionary aan
+    clusterresultdict = {}
+    #iedere regel wordt gesplitst op 3 spaties, zodat ze als key:value aan de dictionary toegevoegd kunnen worden
+    for i in clusterresultlines:
+        linesplit = i.split('   ')
+        clusterresultdict[linesplit[0]]=linesplit[1]
+    
+    #open het tekstbestand, lees het regel voor regel in en sluit het
+    f = open(file_clusterData, "r")
+    clusterdatalines = f.read().splitlines()
+    f.close()
+
+    #maak een lege lijst aan
+    clusterdatalist = []
+    #iedere regel wordt gesplitst op 2 spaties, waardoor elke regel een lijst van values wordt
+    for i in clusterdatalines:
+        linesplit = i.split("  ")
+        #de lijst van de regel wordt toegevoegd aan de lege lijst
+        clusterdatalist.append(linesplit)
+        
+    #clusterdatalist is een lijst met lijsten, hiervan wordt een dataframe gemaakt met CloneID als index
+    df_clusterdata = pd.DataFrame.from_records(clusterdatalist, columns = ['CloneID','1','2','3','4','5','6','7','8'])
+    
+    #De bijbehorende cluster nummers zijn toegevoegd aan de CloneId's
+    df_clusterdata['cluster_nummer'] = df_clusterdata.CloneID.replace(clusterresultdict)
+    
+    #voor elk cluster een apart dataframe
+    df_cluster=[ df_clusterdata.loc[df_clusterdata['cluster_nummer']==val,:] for val in df_clusterdata['cluster_nummer'].unique() ]
+    for df_per_cluster in df_cluster:
+        df_per_cluster.loc[df_per_cluster.index[0],'cluster_nummer']
+    
+        # voor elk cluster een grafiek
+        for i, row in df_per_cluster.iterrows():
+            for i in range(8):
+                plt.scatter(i+1, float(row[i+1]), c='orange')
+        
+        print('A graph for cluster ',df_per_cluster.loc[df_per_cluster.index[0],'cluster_nummer'])
+        plt.show()
+    
+    
+resultladen("Voorbeeld_clusterresult.txt", "Voorbeeld_clusterdata.txt")
