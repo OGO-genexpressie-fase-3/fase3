@@ -3,6 +3,8 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 
+import statistics as st
+
 def grafiekenGenFamilies(filenameClusterData, filenameCloneIdFam):
     #input: data clusteren .txt en gen families .txt
     #output: grafieken met (dag, relatieve expressiewaarden van die dag) voor elke gen familie die voorkomt bij het experiment
@@ -57,17 +59,29 @@ def grafiekenGenFamilies(filenameClusterData, filenameCloneIdFam):
     for fam in dagenFam:
         famNr = fam.loc[fam.index[0],'Familienummer']
         
+        #creëer lege lijsten voor het clustergemiddelde te berekenen
+        x=[]
+        y=[]
+        
         #(dag, relatieve expressiewaarden van die dag) plotten
-        for x, row in fam.iterrows():
-            for x in range(8):
-                dag = dagen[x]
-                plt.scatter(dag, float(row[x+1]))
+        for i, row in fam.iterrows():
+            for i in range(8):
+                dag = dagen[i]
+                plt.scatter(dag, float(row[i+1]), c='blue')
+                x.append(i)
+                y.append(float(row[i+1]))
         
         #grafiek en assen benoemen
         plt.suptitle('Grafiek van genfamilie: ' + df_namen.loc[df_namen.index[int(famNr)-1], 'Fam_naam'])
         plt.xlabel('Dagen')
         plt.ylabel('Relatieve expressiewaarde')
+        
+        #plot clustergemiddelde
+        plt.scatter(float(st.mean(x)),float(st.mean(y)), c='red')
+        
+        #geef plot weer
         plt.show()
+        
         
 #data runnen
 grafiekenGenFamilies('Voorbeeld_clusterdata.txt','CloneIdFamily.txt')
