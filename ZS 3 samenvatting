@@ -5,3 +5,10 @@ De output is een dictionary met als key het woord en als value het aantal keer d
 
 Functie WoordenClusters: Deze functie kijkt per woord in welk cluster het in de beschrijving van een gen voorkomt. 
 De output is een dictionary met als key het woord en als value een lijst met de clusters waarin het voorkomt.
+
+Om erachter te komen of de data goed geclusterd is, hebben we voor elk cluster een scatter plot gemaakt met de relatieve 
+expressiewaarden. We kunnen nu bekijken of de clusters verschillende effecten beschrijven. 
+
+Om te kijken hoe de CloneId’s verdeeld zijn over de verschillende clusters, hebben we een bar chart gemaakt voor elke familie 
+waarin staat hoe vaak een CloneId in een cluster zit.
+
