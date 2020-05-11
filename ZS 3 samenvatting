@@ -1,0 +1,7 @@
+Samenvatting Zelfstudie 3 fase 3
+
+Functie TelWoorden: Deze functie telt hoevaak een woord in alle beschrijvingen van genen bij elkaar voorkomt. 
+De output is een dictionary met als key het woord en als value het aantal keer dat het voorkomt.
+
+Functie WoordenClusters: Deze functie kijkt per woord in welk cluster het in de beschrijving van een gen voorkomt. 
+De output is een dictionary met als key het woord en als value een lijst met de clusters waarin het voorkomt.
