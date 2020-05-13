@@ -1,0 +1,26 @@
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import sqlite3
+from scipy import stats
+from scipy.stats import *
+#inladen accessionnumbers.txt
+
+def accessioninladen(tekstbestand):
+    
+    f = open(tekstbestand,"r")
+    accessionlines = f.read().splitlines()
+    f.close()
+    
+    accessionlines.pop(0)
+    accessionlist = []
+    for i in accessionlines:
+        linesplit = i.split("\t")
+        accessionlist.append(linesplit)
+    print(accessionlist)
+    
+    df_accessionnumbers = pd.DataFrame.from_records(accessionlist, columns = ['CloneID','EMBL(genbank)ID','unigeneID','ensemblegeneid']).set_index('CloneID')
+    return df_accessionnumbers
+    
+df_accessionnumbers = accessioninladen("accessionnumbers.txt")   
+print(df_accessionnumbers)
