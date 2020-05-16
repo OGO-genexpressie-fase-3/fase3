@@ -1,0 +1,35 @@
+import urllib.request
+
+def embldata(ID):
+    website = "https://www.ebi.ac.uk/ena/browser/api/embl/"
+    path = ".1?lineLimit=1000"
+    url = website + ID + path
+    
+    rf = urllib.request.urlopen(url)
+    data = rf.readlines()
+    embldata = []
+    for line in data:
+        line = str(line)
+        line = line[2:-1]
+        line.split("\t")
+        embldata.append(line)
+    return embldata
+        
+def sequence(embldata):
+
+    for line in embldata:
+        if "SQ" in line:
+            sequenceindex = embldata.index(line)
+    sequenceinfo = embldata[sequenceindex]
+    sequencelist = embldata[sequenceindex+1:-1]
+    sequence = ""
+    for line in sequencelist:
+        sequence += line[:60]
+    while "  " in sequence:
+        sequence = sequence.replace("  "," ")
+    return sequenceinfo, sequencelist, sequence
+            
+
+
+embldata = embldata("AA415717")    
+sequenceinfo, sequencelist, sequence = sequence(embldata)
