@@ -17,6 +17,8 @@ def tissueType(filename_EMBL_ID):
     
     #variable_EMBL_ID = df_accessionnumbers[['EMBL(genbank)ID']]
     df_variable_EMBL_ID = df_accessionnumbers['EMBL(genbank)ID'].copy()
+    df_variable_EMBL_ID.replace('', np.nan, inplace=True)
+    df_variable_EMBL_ID.dropna( inplace=True)
     
     #https://www.ebi.ac.uk/ena/browser/api/embl/AI552275.1?lineLimit=1000
     website = "https://www.ebi.ac.uk/ena/browser/api/embl/"
