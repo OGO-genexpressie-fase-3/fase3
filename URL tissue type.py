@@ -28,7 +28,7 @@ def tissueType(filename_EMBL_ID):
         embldata = []
         for line in data:
             line = str(line)
-            line = line[2:-1]
+            line = line[23:-3]
             line.split("\t")
             embldata.append(line)
     
