@@ -33,8 +33,11 @@ def tissueType(filename_EMBL_ID):
             line = line[23:-3]
             line.split("\t")
             embldata.append(line)
-    
-            if '/tissue_type' in line:
-                print(line)
+            
+            tissue_type = []
+            if '/tissue_type=' in line:
+                line = line[14:]
+                tissue_type.append(line)
+    print(tissue_type)
 
 tissueType('accessionnumbers.txt')
