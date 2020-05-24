@@ -1,0 +1,206 @@
+import pandas as pd
+import urllib.request
+import numpy as np
+
+def embldata(ID):
+    website = "https://www.ebi.ac.uk/ena/browser/api/embl/"
+    path = ".1?lineLimit=1000"
+    url = website + ID + path
+    
+    rf = urllib.request.urlopen(url)
+    data = rf.readlines()
+    embldata = []
+    for line in data:
+        line = str(line)
+        line = line[2:-1]
+        line.split("\t")
+        embldata.append(line)
+    return embldata
+        
+def sequence(embldata):
+    #input: tekstbestand embldata (output van functie embldata)
+    #output: sequenceinfo: lijst met aantal baseparen, A, C, G, T, other
+        #sequencelist: lijst van de regels van de sequence
+        #sequence: een string van de sequence
+    
+    for line in embldata:
+        if "SQ" in line:
+            sequenceindex = embldata.index(line)
+    sequenceinfo = embldata[sequenceindex]
+    sequencelist = embldata[sequenceindex+1:-1]
+    sequence = ""
+    for line in sequencelist:
+        sequence += line[:60]
+    while "  " in sequence:
+        sequence = sequence.replace("  "," ")
+    sequenceinfo = sequenceinfo.replace("\\n","")
+    sequenceinfo = sequenceinfo.replace("SQ   Sequence ","")
+    sequenceinfo = sequenceinfo.replace(" BP","")
+    sequenceinfo = sequenceinfo.replace(" A","")
+    sequenceinfo = sequenceinfo.replace(" C","")
+    sequenceinfo = sequenceinfo.replace(" G","")
+    sequenceinfo = sequenceinfo.replace(" T","")
+    sequenceinfo = sequenceinfo.replace(" other","")
+    sequenceinfo = sequenceinfo.replace(" ","")   
+    sequenceinfo = sequenceinfo.split(';')
+    sequenceinfo = sequenceinfo[:-1]
+
+    return sequenceinfo, sequencelist, sequence
+
+def resultladen(tekstbestand):
+    #input: resultaten clusteren .txt
+    #output: dictionary met CloneID en clusternummer
+    
+    #open het tekstbestand, lees het regel voor regel in en sluit het
+    f = open(tekstbestand, "r")
+    clusterresultlines = f.read().splitlines()
+    f.close()
+    
+    #maak een lege dictionary aan
+    clusterresultdict = {}
+    #iedere regel wordt gesplitst op 3 spaties, zodat ze als key:value aan de dictionary toegevoegd kunnen worden
+    for i in clusterresultlines:
+        linesplit= i.split("   ")
+        clusterresultdict[linesplit[0]]=linesplit[1]
+    
+    return clusterresultdict
+
+def accessioninladen(tekstbestand):
+    
+    f = open(tekstbestand,"r")
+    accessionlines = f.read().splitlines()
+    f.close()
+    
+    accessionlines.pop(0)
+    accessionlist = []
+    for i in accessionlines:
+        linesplit = i.split("\t")
+        accessionlist.append(linesplit)
+    
+    df_accessionnumbers = pd.DataFrame.from_records(accessionlist, columns = ['CloneID','EMBL(genbank)ID','unigeneID','ensemblegeneid']).set_index('CloneID')
+    return df_accessionnumbers
+    
+     
+def df_accession_cluster_sequenceinfo(df_accessionnumbers):
+    #input accessionnumbers dataframe
+    #output accessionnumbers dataframe aangevuld met clusternummer, sequence en baseparen, a,c,g,t,other
+    df_clusterresult = pd.DataFrame(list(clusterresult.items()), columns = ['CloneID','cluster_nummer'])
+    df_merge = pd.merge(df_accessionnumbers, df_clusterresult, how='inner', on='CloneID')
+    #maak van de cluster nummers integers
+    df_merge['cluster_nummer']=pd.to_numeric(df_merge['cluster_nummer'])
+    
+    # Create a list to store the data
+    bp = {}
+    a = {}
+    c = {}
+    g = {}
+    t = {}
+    other = {}
+    sequences = {}
+    
+    # For each row in the column,
+    for ID in df_merge['EMBL(genbank)ID']:
+        try:
+            embldatas=embldata(ID)
+            sequenceinfo, sequencelist, sequenced = sequence(embldatas)
+            bp[ID]=sequenceinfo[0]
+            a[ID]=sequenceinfo[1]
+            c[ID]=sequenceinfo[2]
+            g[ID]=sequenceinfo[3]
+            t[ID]=sequenceinfo[4]
+            other[ID]=sequenceinfo[5]
+            sequences[ID]=sequenced
+        except urllib.error.HTTPError:
+            break
+
+    df_bp = pd.DataFrame(bp.items(), columns=['EMBL(genbank)ID','bp'])
+    df_a = pd.DataFrame(a.items(), columns=['EMBL(genbank)ID','a'])
+    df_c = pd.DataFrame(c.items(), columns=['EMBL(genbank)ID','c'])
+    df_g = pd.DataFrame(g.items(), columns=['EMBL(genbank)ID','g'])
+    df_t = pd.DataFrame(t.items(), columns=['EMBL(genbank)ID','t'])
+    df_other = pd.DataFrame(other.items(), columns=['EMBL(genbank)ID','other'])
+    df_sequence = pd.DataFrame(sequences.items(), columns = ['EMBL(genbank)ID','sequence'])
+    df_merge = pd.merge(df_merge, df_bp, how='inner', on='EMBL(genbank)ID')
+    df_merge = pd.merge(df_merge, df_a, how='inner', on='EMBL(genbank)ID')
+    df_merge = pd.merge(df_merge, df_c, how='inner', on='EMBL(genbank)ID')
+    df_merge = pd.merge(df_merge, df_g, how='inner', on='EMBL(genbank)ID')
+    df_merge = pd.merge(df_merge, df_t, how='inner', on='EMBL(genbank)ID')
+    df_merge = pd.merge(df_merge, df_other, how='inner', on='EMBL(genbank)ID')
+    df_merge = pd.merge(df_merge, df_sequence, how='inner', on='EMBL(genbank)ID')
+    df_merge['bp'] = pd.to_numeric(df_merge['bp'])
+    df_merge['a'] = pd.to_numeric(df_merge['a'])
+    df_merge['c'] = pd.to_numeric(df_merge['c'])
+    df_merge['g'] = pd.to_numeric(df_merge['g'])
+    df_merge['t'] = pd.to_numeric(df_merge['t'])
+    df_merge['other'] = pd.to_numeric(df_merge['other'])
+    
+
+    return df_merge
+    
+def sequence_compare(df_merge):
+    #sequenceinfo = ['bp','a','c','g','t','other']
+    range_1 = {}
+    
+    cluster_1 = df_merge[df_merge['cluster_nummer']==1]
+    range_1['bp']= (cluster_1['bp'].max()-cluster_1['bp'].min())
+    range_1['a']= (cluster_1['a'].max()-cluster_1['a'].min())
+    range_1['c']= (cluster_1['c'].max()-cluster_1['c'].min())
+    range_1['g']= (cluster_1['g'].max()-cluster_1['g'].min())
+    range_1['t']= (cluster_1['t'].max()-cluster_1['t'].min())
+
+    print(range_1)
+    
+    range_2 = {}
+    
+    cluster_2 = df_merge[df_merge['cluster_nummer']==2]
+    range_2['bp']= (cluster_2['bp'].max()-cluster_2['bp'].min())
+    range_2['a']= (cluster_2['a'].max()-cluster_2['a'].min())
+    range_2['c']= (cluster_2['c'].max()-cluster_2['c'].min())
+    range_2['g']= (cluster_2['g'].max()-cluster_2['g'].min())
+    range_2['t']= (cluster_2['t'].max()-cluster_2['t'].min())
+
+    print(range_2)
+    
+    range_3 = {}
+    
+    cluster_3 = df_merge[df_merge['cluster_nummer']==3]
+    range_3['bp']= (cluster_3['bp'].max()-cluster_3['bp'].min())
+    range_3['a']= (cluster_3['a'].max()-cluster_3['a'].min())
+    range_3['c']= (cluster_3['c'].max()-cluster_3['c'].min())
+    range_3['g']= (cluster_3['g'].max()-cluster_3['g'].min())
+    range_3['t']= (cluster_3['t'].max()-cluster_3['t'].min())
+
+    print(range_3)
+    
+    range_4 = {}
+    
+    cluster_4 = df_merge[df_merge['cluster_nummer']==4]
+    range_4['bp']= (cluster_4['bp'].max()-cluster_4['bp'].min())
+    range_4['a']= (cluster_4['a'].max()-cluster_4['a'].min())
+    range_4['c']= (cluster_4['c'].max()-cluster_4['c'].min())
+    range_4['g']= (cluster_4['g'].max()-cluster_4['g'].min())
+    range_4['t']= (cluster_4['t'].max()-cluster_4['t'].min())
+
+    print(range_4)
+    
+    range_5 = {}
+    
+    cluster_5 = df_merge[df_merge['cluster_nummer']==5]
+    range_5['bp']= (cluster_5['bp'].max()-cluster_5['bp'].min())
+    range_5['a']= (cluster_5['a'].max()-cluster_5['a'].min())
+    range_5['c']= (cluster_5['c'].max()-cluster_5['c'].min())
+    range_5['g']= (cluster_5['g'].max()-cluster_5['g'].min())
+    range_5['t']= (cluster_5['t'].max()-cluster_5['t'].min())
+
+    print(range_5)
+
+
+#embldata = embldata("AA415717")  
+#sequenceinfo, sequencelist, sequence = sequence(embldata)
+df_accessionnumbers = accessioninladen("accessionnumbers.txt")
+clusterresult = resultladen("Voorbeeld_clusterresult.txt")
+df_accession_cluster_sequenceinfo = df_accession_cluster_sequenceinfo(df_accessionnumbers)
+print(df_accession_cluster_sequenceinfo)
+sequence_compare(df_accession_cluster_sequenceinfo)
+
+
