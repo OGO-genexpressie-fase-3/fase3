@@ -11,6 +11,8 @@ def dataLadenCluster(tekstbestand):
     #input: data clusteren .txt
     #output: dataframe met index CloneID
     
+    
+    
     #open het tekstbestand, lees het regel voor regel in en sluit het
     f = open(tekstbestand, "r")
     clusterdatalines = f.read().splitlines()
