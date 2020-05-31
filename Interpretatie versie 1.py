@@ -6,7 +6,7 @@ Groep 1 OGO genexpressie
 import pandas as pd
 
 import matplotlib.pyplot as plt
-#hoi hooooooi
+
 def dataLadenCluster(tekstbestand):
     #input: data clusteren .txt
     #output: dataframe met index CloneID
