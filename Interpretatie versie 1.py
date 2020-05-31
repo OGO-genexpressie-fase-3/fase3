@@ -4,9 +4,9 @@ Fase 3
 Groep 1 OGO genexpressie
 """
 import pandas as pd
-#hahaha hopen dat dit werkt
+
 import matplotlib.pyplot as plt
-#hoi hooooooi
+
 def dataLadenCluster(tekstbestand):
     #input: data clusteren .txt
     #output: dataframe met index CloneID
