@@ -1,0 +1,173 @@
+"""
+Vrij analyse expressie, chromosoom
+"""
+import pandas as pd
+import numpy as np
+import urllib.request
+import gzip
+from collections import Counter
+
+def readAccession(filename_accessionnumbers, clusterresultdict):
+    """
+    Input: accessionnumbers.txt en dictionary van clusterresult
+    Output: dataframe van accessionnumbers met hun bijhorende cluster nummer
+    """
+    #open het accessionnumbers.txt bestand
+    infile_acc = open(filename_accessionnumbers)
+    lines = infile_acc.read().splitlines()
+    infile_acc.close()
+    
+    #data omzetten naar een dataframe    
+    accessionlist = []
+    for line in lines:
+        linesplit = line.split('\t')
+        accessionlist.append(linesplit)
+    
+    df_accessionnumbers = pd.DataFrame.from_records(accessionlist, columns = ['cloneID','EMBL(genbank)ID','unigeneID','ensemblegeneid'])
+    
+    #cluster nummer bij elke cloneID toevoegen
+    df_accessionnumbers['cluster_nummer'] = df_accessionnumbers['cloneID'].map(clusterresultdict)
+    #NaN in cluster_nummer weghalen
+    df_accessionnumbers = df_accessionnumbers[df_accessionnumbers['cluster_nummer'].notna()].reset_index()
+    
+    return df_accessionnumbers
+
+def resultLadenCluster(tekstbestand):
+    """
+    Input: resultaten clusteren.txt
+    Output: dictionary met CloneID en clusternummer
+    """
+    
+    #open het tekstbestand, lees het regel voor regel in en sluit het
+    f = open(tekstbestand, "r")
+    clusterresultlines = f.read().splitlines()
+    f.close()
+    
+    #maak een lege dictionary aan
+    clusterresultdict = {}
+    #iedere regel wordt gesplitst op 3 spaties, zodat ze als key:value aan de dictionary toegevoegd kunnen worden
+    for i in clusterresultlines:
+        linesplit= i.split("   ")
+        clusterresultdict[linesplit[0]]=linesplit[1]
+    
+    return clusterresultdict
+
+def dicChromosomeExpress(url):
+    '''
+    Input: url van data van unigene ID
+    Output: dictionary met key unigene ID en het chromosoom nummer als value;
+            dictionary met key unigene ID en waar het tot expressie komt als value (string formaat)
+    '''
+    #laad de url in van het bestand (.data.gz bestand)
+    with urllib.request.urlopen(url) as response:
+        
+        #lees het gzip bestand (word beschouwd als binaire bestand met bytes)
+        #vb.: b(ID  Mm.297)
+        with gzip.GzipFile(fileobj=response) as binary_file:
+            
+            #maak lege dictionaries aan voor output
+            chromosomeDic = {}
+            expressDic = {}
+            
+            #lees het binaire bestand en split de lijnen
+            data = binary_file.read().splitlines()
+            
+            #voor elke lijn in het bestand
+            for line in data:
+                
+                #zet bytes om naar string
+                line = line.decode()
+                line = line.replace("|","")
+                #split lijn bij elke white space
+                line = line.split()
+                
+                
+                #als de lijn niet leeg is dan:
+                if line != []:
+                    #als het eerste woord in de lijn 'ID' is
+                    #stel de variabele key gelijk aan de ID nummer (unigene ID)
+                    if line[0] == 'ID':
+                        key = str(line[1:][0])
+                    #als het eerste woord in de lijn 'EXPRESS' is
+                    elif line[0] == 'EXPRESS':
+                        #voeg  de unigene ID als key en waar het tot expressie kan komen als value aan expressDic
+                        expressDic.update({key: line[1:]})
+                    #als het eerste woord in de lijn 'CHROMOSOME' is
+                    elif line[0] == 'CHROMOSOME':
+                        #voeg de unigene ID als key en bijhorende chromosoom nummer als value toe aan chromosomeDic
+                        chromosomeDic.update({key: line[1]})
+                        
+    return chromosomeDic, expressDic
+
+def creatingUnigeneDf(df_accessionnumbers):
+    """
+    Input: dataframe van accessionnumbers met hun clusternummers
+    Output: dataframe van alleen unigeneID met bijhorende cluster nummer
+    """
+    #selecteer alleen cluster nummer en unigeneID kolommen uit df_accessionnumbers
+    df_unigene = df_accessionnumbers[['cluster_nummer','unigeneID']].copy()
+    
+    #haal alle rijen uit df waar er geen unigeneID is
+    df_unigene.replace('', np.nan, inplace=True)
+    df_unigene.dropna(inplace=True)
+    
+    return df_unigene
+
+def WoordenClusters(expressDic,clusterresultdict, df_accessionnumbers):
+    #voeg cluster nummers toe aan gen descripties voor gelijke CloneID's
+    #print(expressDic)
+    df_clusterresult = pd.DataFrame(list(clusterresultdict.items()), columns = ['cloneID','cluster_nummer']).set_index('cloneID')
+    df_clusterresult['cluster_nummer']=pd.to_numeric(df_clusterresult['cluster_nummer'])
+    df_express = pd.DataFrame(list(expressDic.items()), columns = ['unigeneID','expressie']).set_index('unigeneID')
+    df_merge1 = pd.merge(df_accessionnumbers, df_clusterresult, how='inner', on='cloneID').set_index('cloneID')
+    df_merge = pd.merge(df_merge1, df_express, how='inner', on='unigeneID')
+
+  
+    
+    #creëert een lijst met lijsten bestaande uit de woorden in de gen beschrijvingen per cluster
+    alle_woord_per_cluster = [] #lege lijst voor bovenstaande benoemde lijst
+    
+    alle_woorden = [] #lege lijst waar alle woorden inkomen
+
+    
+    for cluster_nr in range(0,int(df_merge['cluster_nummer'].max())+1):  #for loop met clusternummer
+        df_per_cluster = df_merge[df_merge['cluster_nummer']==cluster_nr]#dataframe per cluster met beschrijving
+        exp_per_cluster = df_per_cluster['expressie']   #zet kolom met beschrijving om in lijst
+
+        woord_per_cluster = []  #lege lijst voor alle woorden per cluster
+        
+        for woord in exp_per_cluster:
+            
+            woord_per_cluster.extend(woord)
+            
+            #voegt elk woord toe aan alle_woorden                
+            alle_woorden.extend(woord)
+            
+        #voegt lijst met woorden per cluster toe aan alle_woord_per_cluster
+        alle_woord_per_cluster.append(woord_per_cluster)
+    
+    voorkomen_woorden_cluster_dict = {} #lege dictionary waar value de lijst met voorkomen woorden per cluster inkomen
+    
+    for w in alle_woorden:  #for loop met alle woorden in de beschrijvingen
+        voorkomen_woorden_cluster_lijst = []    #lege lijst waar aantal voorkomen van woorden per cluster in komen
+        for index_cluster in range(df_merge['cluster_nummer'].max()):  #for loop met index van cluster
+            telling = alle_woord_per_cluster[index_cluster].count(w)    #aantal voorkomen van woord in die cluster
+            voorkomen_woorden_cluster_lijst.append(telling)  #voorkomen van woord in cluster wordt toegevoegd aan de lijst
+        voorkomen_woorden_cluster_dict[w] = voorkomen_woorden_cluster_lijst  #uiteindelijke dictionary wordt gemaakt
+            
+        
+    return voorkomen_woorden_cluster_dict
+    
+
+
+    
+
+#laad definities
+clusterresultdict = resultLadenCluster('Voorbeeld_clusterresult.txt')
+df_accessionnumbers = readAccession('accessionnumbers.txt', clusterresultdict)
+chromosomeDic, expressDic = dicChromosomeExpress('https://ftp.ncbi.nlm.nih.gov/repository/UniGene/Mus_musculus/Mm.data.gz')
+df_unigene = creatingUnigeneDf(df_accessionnumbers)
+
+voorkomen_woorden_cluster_dict = WoordenClusters(expressDic,clusterresultdict, df_accessionnumbers)
+
+print(voorkomen_woorden_cluster_dict)
