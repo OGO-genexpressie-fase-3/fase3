@@ -496,6 +496,54 @@ def plot(df_merge, base):
     df_4[base].plot(kind='density')
     df_5[base].plot(kind='density')
     
+def expressieClusters(expressDic,clusterresultdict, df_accessionnumbers):
+    """
+    kijkt voor de verschillende plekken waar een gen tot expressie komt in welke clusters dat hoevaak voorkomt
+    input: expressDic,clusterresultdict, df_accessionnumbers
+    output: dictionary
+    """
+    #voeg cluster nummers toe aan gen descripties voor gelijke CloneID's
+
+    df_express = pd.DataFrame(list(expressDic.items()), columns = ['unigeneID','expressie']).set_index('unigeneID')
+    df_merge = pd.merge(df_accessionnumbers, df_express, how='inner', on='unigeneID')
+    df_merge['cluster_nummer']= pd.to_numeric(df_merge['cluster_nummer'])
+
+  
+    
+    #creëert een lijst met lijsten bestaande uit de woorden in de gen beschrijvingen per cluster
+    alle_woord_per_cluster = [] #lege lijst voor bovenstaande benoemde lijst
+    
+    alle_woorden = [] #lege lijst waar alle woorden inkomen
+
+    
+    for cluster_nr in range(0,int(df_merge['cluster_nummer'].max())+1):  #for loop met clusternummer
+        df_per_cluster = df_merge[df_merge['cluster_nummer']==cluster_nr]#dataframe per cluster met beschrijving
+        exp_per_cluster = df_per_cluster['expressie']   #zet kolom met beschrijving om in lijst
+
+        woord_per_cluster = []  #lege lijst voor alle woorden per cluster
+        
+        for woord in exp_per_cluster:
+            
+            woord_per_cluster.extend(woord)
+            
+            #voegt elk woord toe aan alle_woorden                
+            alle_woorden.extend(woord)
+            
+        #voegt lijst met woorden per cluster toe aan alle_woord_per_cluster
+        alle_woord_per_cluster.append(woord_per_cluster)
+    
+    voorkomen_woorden_cluster_dict = {} #lege dictionary waar value de lijst met voorkomen woorden per cluster inkomen
+    
+    for w in alle_woorden:  #for loop met alle woorden in de beschrijvingen
+        voorkomen_woorden_cluster_lijst = []    #lege lijst waar aantal voorkomen van woorden per cluster in komen
+        for index_cluster in range(df_merge['cluster_nummer'].max()):  #for loop met index van cluster
+            telling = alle_woord_per_cluster[index_cluster].count(w)    #aantal voorkomen van woord in die cluster
+            voorkomen_woorden_cluster_lijst.append(telling)  #voorkomen van woord in cluster wordt toegevoegd aan de lijst
+        voorkomen_woorden_cluster_dict[w] = voorkomen_woorden_cluster_lijst  #uiteindelijke dictionary wordt gemaakt
+            
+        
+    return voorkomen_woorden_cluster_dict
+    
     
 df_accessionnumbers = accessioninladen('accessionnumbers.txt')
 df_merge = df_accession_cluster_sequenceinfo(df_accessionnumbers)
