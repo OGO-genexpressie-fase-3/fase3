@@ -1,0 +1,29 @@
+def plot_cluster(df_merge, base, clusternr):
+    """
+    maakt een density plot
+    input: df_merge (output van functie df_accession_cluster_sequenceinfo), en de base die je wil plotten (bv 'a', 'bp')
+    output: density plot van de base van een cluster
+    """
+    
+    #maak een dataframe van elk apart cluster
+    df = df_merge[df_merge['cluster_nummer']==clusternr]
+    
+    #plot voor elk cluster de gewenste base
+    plot = df[base].plot(kind='density')
+    plot.set_xlabel('Aantal '+ base + ' in sequentie')
+    plot.set_title('Densityplot voor aantal '+ ' in sequentie per cluster')
+
+    return plot
+    
+def plot_base_per_cluster(df_merge, base, aantalclusters):
+    """
+    plot voor alle clusters de density van de base
+    input: df_merge, de gewenste base in een string, het aantal clusters als numeric value
+    output: densityplot van een base met elke cluster
+    """
+    
+    #roep de functie plot_cluster af op elk cluster om de plot te krijgen
+    for cluster in range(aantalclusters):
+        plot_cluster(df_merge,base,cluster)
+        
+plot_base_per_cluster(df_merge, 'a', 5)
