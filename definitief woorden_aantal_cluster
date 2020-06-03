@@ -1,0 +1,55 @@
+def woord_aantal_cluster(voorkomen_woorden_cluster_dict, aantal_clusters):
+    
+    for woord in voorkomen_woorden_cluster_dict:
+        #maak lege lijst aan, dit wordt de lijst met clusters waarin een woord voorkomt
+        clusterlijst = []
+        for cluster in voorkomen_woorden_cluster_dict[woord]:
+            #voor elk cluster kan 1 of 0 staan, 1 betekent het woord zit erin
+            if cluster >= 1:
+                if voorkomen_woorden_cluster_dict[woord].index(cluster)+1 not in clusterlijst:
+                    #voeg het nummer van de cluster toe aan de lijst met clusters
+                    clusterlijst.append(voorkomen_woorden_cluster_dict[woord].index(cluster)+1)
+        #als het woord in geen een cluster zit, zet dan een 0 neer
+        if clusterlijst == []:
+            clusterlijst= [0]
+        #vervang de value van het woord met de lijst van clusters
+        voorkomen_woorden_cluster_dict[woord]=clusterlijst
+
+    woorden_1_cluster = {}
+    for woord in voorkomen_woorden_cluster_dict:
+        #als het aantal clusters waarin een woord voorkomt 1 is, voeg het woord dan toe aan de dict bij het juiste woord
+        if len(voorkomen_woorden_cluster_dict[woord])==1:
+            if voorkomen_woorden_cluster_dict[woord][0] not in woorden_1_cluster.keys():
+                woorden_1_cluster[voorkomen_woorden_cluster_dict[woord][0]] = [woord]
+            else:
+                woorden_1_cluster[voorkomen_woorden_cluster_dict[woord][0]].append(woord)
+    
+    woorden_23_cluster = {}
+    for woord in voorkomen_woorden_cluster_dict:
+        #als het aantal clusters waarin een woord voorkomt 2 of 3 is, voeg het woord dan toe aan de dict bij het juiste woord
+        if len(voorkomen_woorden_cluster_dict[woord])==2 or len(voorkomen_woorden_cluster_dict[woord])==3:
+            for cluster in voorkomen_woorden_cluster_dict[woord]:
+                if cluster not in woorden_23_cluster.keys():
+                    woorden_23_cluster[cluster]=[woord]
+                else:
+                    woorden_23_cluster[cluster].append(woord)
+            
+    woorden_0_cluster = {}
+    for woord in voorkomen_woorden_cluster_dict:
+        #als het aantal clusters waarin een woord voorkomt 0 is, voeg het woord dan toe aan de dict bij het juiste woord
+        if voorkomen_woorden_cluster_dict[woord]==[0]:
+            if voorkomen_woorden_cluster_dict[woord][0] not in woorden_0_cluster.keys():
+                woorden_0_cluster[voorkomen_woorden_cluster_dict[woord][0]] = [woord]
+            else:
+                woorden_0_cluster[voorkomen_woorden_cluster_dict[woord][0]].append(woord)
+
+    woorden_all_cluster = []
+    for woord in voorkomen_woorden_cluster_dict:
+        #als het aantal clusters waarin een woord voorkomt 5 is, voeg het woord dan toe aan de dict bij het juiste woord
+        if len(voorkomen_woorden_cluster_dict[woord])==aantal_clusters:
+            woorden_all_cluster.append(woord)
+        
+    return woorden_1_cluster, woorden_23_cluster, woorden_0_cluster, woorden_all_cluster, voorkomen_woorden_cluster_dict
+    
+    
+woorden_1_cluster, woorden_23_cluster, woorden_0_cluster, woorden_all_cluster, voorkomen_woorden_cluster_list = woord_aantal_cluster(voorkomen_woorden_cluster_dict,5)
