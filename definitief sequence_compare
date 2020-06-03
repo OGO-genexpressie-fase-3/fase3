@@ -1,0 +1,19 @@
+def sequence_compare(df_merge,cluster):
+    #input: df_merge (de output uit de functie df_accession_cluster_sequenceinfo)
+    #output:voor elke cluster een dictionary van de range van a,c,g,t etc.
+    
+    #sequenceinfo = ['bp','a','c','g','t','other']
+    range_cluster = {}
+    #maak een dataframe aan van df_merge met maar 1 cluster
+    cluster = df_merge[df_merge['cluster_nummer']==cluster]
+    #bereken voor elke nucleotide de 'range' oftewel het verschil in maximale waarde en minimale waarde en voeg deze toe aan de dictionary
+    range_cluster['bp']= (cluster['bp'].max()-cluster['bp'].min())
+    range_cluster['a']= (cluster['a'].max()-cluster['a'].min())
+    range_cluster['c']= (cluster['c'].max()-cluster['c'].min())
+    range_cluster['g']= (cluster['g'].max()-cluster['g'].min())
+    range_cluster['t']= (cluster['t'].max()-cluster['t'].min())
+
+    return range_cluster
+    
+    for cluster in aantalclusters:
+      sequence_compare(df_accession_cluster_sequenceinfo, cluster)
