@@ -15,5 +15,5 @@ def sequence_compare(df_merge,cluster):
 
     return range_cluster
     
-    for cluster in aantalclusters:
+    for cluster in range(aantalclusters):
       sequence_compare(df_accession_cluster_sequenceinfo, cluster)
